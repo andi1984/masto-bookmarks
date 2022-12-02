@@ -1,8 +1,8 @@
-const axios = require('axios');
+import axios from "axios";
 
-export const notifyWebhook = async (url:string, body:Object) => {
-	const res = await axios
-    .post(url, body, {
-      "Content-Type": "application/json"
-      })
-}
+export const notifyWebhook = async (url: string, body: Object) => {
+  const res = await axios.post(url, body, {
+    //@ts-ignore No idea....
+    "Content-Type": "application/json",
+  });
+};
