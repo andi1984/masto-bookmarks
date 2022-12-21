@@ -34,6 +34,11 @@ export async function getBookmarks() {
 
   // Filter out Mastodon tags
   urls = urls.filter((url) => url?.match(/.*\/tags\/.*/g) === null);
+  urls = urls.filter((url) => url?.match(/.*\/tag\/.*/g) === null);
+  urls = urls.filter((url) => url?.match(/.*@.*/g) === null);
+  urls = urls.filter((url) => url?.match(/.*social.*/g) === null);
+  urls = urls.filter((url) => url?.match(/.*fediverse.*/g) === null);
+  urls = urls.filter((url) => url?.match(/.*mastodon.*/g) === null);
 
   const uniqueUrls = new Set(urls);
 
