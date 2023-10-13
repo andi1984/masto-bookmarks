@@ -6,7 +6,7 @@ import { notifyWebhook } from "./zapier.js";
 import { getMastoRuntimeAsync } from "./helper.js";
 loadEnv();
 
-const MAX_RUNS = env.MAX_RUNS || 2;
+const MAX_RUNS = env.MAX_RUNS || 1;
 
 export async function getBookmarks() {
   const masto = await getMastoRuntimeAsync();
@@ -33,6 +33,7 @@ export async function getBookmarks() {
   } while (!done && count < MAX_RUNS);
 
   // Filter out Mastodon tags
+  // TODO: Extract this into an helper
   urls = urls.filter((url) => url?.match(/.*\/tags\/.*/g) === null);
   urls = urls.filter((url) => url?.match(/.*\/tag\/.*/g) === null);
   urls = urls.filter((url) => url?.match(/.*@.*/g) === null);

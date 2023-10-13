@@ -7,6 +7,9 @@ import { getMastoRuntimeAsync } from "./helper.js";
 import { notifyWebhook } from "./zapier.js";
 import { env } from "./env.js";
 
+//@ts-ignore -- NO Definition File
+import extractUrls from "extract-urls";
+
 const renderBookmark = (status: Status) => {
   console.clear();
   console.log(chalk.green(stripHtml(status.content).result));
@@ -31,23 +34,47 @@ export const browseBookmarks = async () => {
 
   const bookmarks = await getNextBookmarks();
   bookmarksArray = bookmarksArray.concat(bookmarks);
-  const selectedBookMark = bookmarksArray[selectedIndex];
 
-  renderBookmark(selectedBookMark);
+  const renderBookmarkAtIndex = (index: number) => {
+    renderBookmark(bookmarksArray[index]);
+  };
+
+  // Initial render
+  renderBookmarkAtIndex(selectedIndex);
 
   process.stdin.on("keypress", async (str, key) => {
-    if (key.name === "right" && selectedIndex + 1 < bookmarksArray.length) {
-      selectedIndex += 1;
+    // console.log(key);
+    if (key.name === "right") {
+      if (selectedIndex + 1 < bookmarksArray.length) {
+        selectedIndex += 1;
+      } else {
+        // Load next page
+        bookmarksArray = bookmarksArray.concat(await getNextBookmarks());
+        selectedIndex += 1;
+      }
     } else if (key.name === "left" && selectedIndex > 0) {
       selectedIndex -= 1;
-    } else if (key.name === "return") {
-      const data = await notifyWebhook(env.URL_WEBHOOK, {
-        urls: [selectedBookMark],
-      });
+    } else if (key.name === "s") {
+      // Hitting "s" for save...
+
+      // 1. Extract URLs from bookmark
+      const matchedUrls: { url: string }[] = extractUrls(
+        bookmarksArray[selectedIndex].content
+      ).map((url: string) => ({
+        url,
+      }));
+
+      // Save to raindrop
+      if (matchedUrls?.length > 0) {
+        await notifyWebhook(env.URL_WEBHOOK, {
+          urls: matchedUrls,
+        });
+      }
     } else {
       read.close();
     }
 
-    renderBookmark(bookmarksArray[selectedIndex]);
+    // New render on keypress
+    renderBookmarkAtIndex(selectedIndex);
   });
 };
