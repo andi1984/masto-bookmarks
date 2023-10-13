@@ -4,6 +4,8 @@ import { Status } from "masto";
 import { stripHtml } from "string-strip-html";
 
 import { getMastoRuntimeAsync } from "./helper.js";
+import { notifyWebhook } from "./zapier.js";
+import { env } from "./env.js";
 
 const renderBookmark = (status: Status) => {
   console.clear();
@@ -29,15 +31,19 @@ export const browseBookmarks = async () => {
 
   const bookmarks = await getNextBookmarks();
   bookmarksArray = bookmarksArray.concat(bookmarks);
+  const selectedBookMark = bookmarksArray[selectedIndex];
 
-  renderBookmark(bookmarksArray[selectedIndex]);
+  renderBookmark(selectedBookMark);
 
-  process.stdin.on("keypress", (str, key) => {
-    console.log("keypress", key.name);
+  process.stdin.on("keypress", async (str, key) => {
     if (key.name === "right" && selectedIndex + 1 < bookmarksArray.length) {
       selectedIndex += 1;
     } else if (key.name === "left" && selectedIndex > 0) {
       selectedIndex -= 1;
+    } else if (key.name === "return") {
+      const data = await notifyWebhook(env.URL_WEBHOOK, {
+        urls: [selectedBookMark],
+      });
     } else {
       read.close();
     }
